@@ -6,8 +6,7 @@ cron:
   check:   '*/15 * * * *'
 
 zookeeper-servers:
-  - host: zuulv3.opencontrail.org
-    port: 3389
+  - host: zuulv3-ttu.opencontrail.org
 
 labels:
   - name: ubuntu-xenial-small

@@ -19,11 +19,9 @@
     success:
       gerrit:
         verified: 1
-      stats:
     failure:
       gerrit:
         verified: -1
-      stats:
     footer-message: |
 
       This is a pipeline from the new version of the OpenContrail CI stack. For more information, see:
