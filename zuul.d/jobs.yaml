@@ -9,9 +9,9 @@
       nodes that are part of the nodeset. It also runs post-playbooks
       that upload logs/ to the logserver.
     pre-run: playbooks/base/pre
-    post-run:
-      - playbooks/base/post-ssh
-      - playbooks/base/post-logs
+  #    post-run:
+  #    - playbooks/base/post-ssh
+  #    - playbooks/base/post-logs
     roles:
       - zuul: codilime/zuul-jobs
     timeout: 28800
@@ -50,9 +50,9 @@
     irrelevant-files:
       - specs/.*
     pre-run: playbooks/contrail/pre
-    post-run:
-      - playbooks/base/post-ssh
-      - playbooks/base/post-logs
+  #    post-run:
+  #      - playbooks/base/post-ssh
+  #      - playbooks/base/post-logs
     roles:
       - zuul: codilime/zuul-jobs
     timeout: 28800
@@ -134,7 +134,7 @@
     irrelevant-files:
       - specs/.*
     run: playbooks/unittest/contrail
-    post-run: playbooks/unittest/post
+  #    post-run: playbooks/unittest/post
     nodeset:
       nodes:
         - name: builder
