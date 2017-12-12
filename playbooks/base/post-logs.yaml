@@ -8,5 +8,5 @@
   gather_facts: False
   roles:
     - role: upload-logs
-      zuul_log_url: "http://logs.opencontrail.org"
+      zuul_log_url: http://107.170.203.108/logs/
       zuul_logserver_root: "/var/www/logs"
