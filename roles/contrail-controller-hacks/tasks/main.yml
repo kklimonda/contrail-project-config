@@ -20,11 +20,14 @@
     - contrail-vrouter
     - contrail-sandesh
     - contrail-generateDS
+  environment:
+    GIT_SSL_NO_VERIFY: '1'
 
 - name: Checkout Juniper/contrail-nova-extensions from github.com
   git:
     repo: "https://github.com/Juniper/contrail-nova-extensions.git"
     dest: "{{ ansible_env.HOME }}/src/review2.opencontrail.org/Juniper/contrail-nova-extensions/"
+  failed_when: false
 
 - name: Change contrail-packages to custom repo
   shell: |
@@ -33,3 +36,5 @@
     git reset --hard kklimonda/feature/zuulv3
   args:
     chdir: "{{ ansible_env.HOME}}/src/review2.opencontrail.org/Juniper/contrail-packages/"
+  environment:
+    GIT_SSL_NO_VERIFY: '1'
