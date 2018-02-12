@@ -6,7 +6,7 @@
         config-projects:
           - kklimonda/contrail-project-config
         untrusted-projects:
-          - codilime/zuul-jobs:
+          - Juniper/zuul-jobs:
               shadow: kklimonda/contrail-project-config
           - Juniper/contrail-api-client
           - Juniper/contrail-nova-extensions

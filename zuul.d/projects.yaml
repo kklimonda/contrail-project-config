@@ -257,7 +257,7 @@
       - noops
 
 - project:
-    name: Juniper/contrail-project-config
+    name: kklimonda/contrail-project-config
     templates:
       - noops
 

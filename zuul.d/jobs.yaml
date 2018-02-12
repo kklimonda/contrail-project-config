@@ -345,12 +345,12 @@
       This job runs against contrail-project-config and zuul-jobs, to lint
       ansible playbooks and roles.
     required-projects:
-      - Juniper/contrail-project-config
+      - kklimonda/contrail-project-config
       - Juniper/zuul-jobs
     vars:
       tox_envlist: linters
       tox_environment:
-        ANSIBLE_ROLES_PATH: ~/src/review.opencontrail.org/Juniper/contrail-project-config/roles:~/src/review.opencontrail.org/Juniper/zuul-jobs/roles
+        ANSIBLE_ROLES_PATH: ~/src/github.com/kklimonda/contrail-project-config/roles:~/src/review.opencontrail.org/Juniper/zuul-jobs/roles
 
 # XXX(kklimonda): temporary jobs to test periodic pipelines
 - job:
