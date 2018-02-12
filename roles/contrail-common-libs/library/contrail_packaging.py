@@ -1,4 +1,5 @@
 import os
+import re
 
 from ansible.module_utils.basic import AnsibleModule
 from datetime import datetime
@@ -16,6 +17,7 @@ result = dict(
 )
 
 MASTER_RELEASE = '5.0'
+version_branch_regex = re.compile(r'^(master)|(R\d+\.\d+(\.\d+)?(\.x)?)$')
 
 class ReleaseType(object):
     CONTINUOUS_INTEGRATION = 'continuous-integration'
@@ -33,23 +35,29 @@ def main():
     release_type = module.params['release_type']
 
     branch = zuul['branch']
-    change = zuul['change']
-    patchset = zuul['patchset']
+    if not version_branch_regex.match(branch):
+        branch = 'master'
     date = datetime.now().strftime("%Y%m%d%H%M%S")
 
     version = {'epoch': None}
     if branch == 'master':
         version['upstream'] = MASTER_RELEASE
+        docker_version = 'master'
     else:
         version['upstream'] = branch[1:]
+        docker_version = version['upstream']
 
     if release_type == ReleaseType.CONTINUOUS_INTEGRATION:
         # Versioning in CI consists of change id, pachset and date
-        version['debian'] = "~{change}.{patchset}~{date}".format(
+        change = zuul['change']
+        patchset = zuul['patchset']
+        version['distrib'] = "ci{change}.{patchset}".format(
             change=change, patchset=patchset, date=date
         )
+        repo_name = "{change}-{patchset}".format(change=change, patchset=patchset)
     elif release_type == ReleaseType.NIGHTLY:
-        version['debian'] = "~{date}".format(date=date)
+        version['distrib'] = "{date}".format(date=date)
+        repo_name = "{upstream}-{date}".format(upstream=version['upstream'],date=date)
     else:
         module.fail_json(
             msg="Unknown release_type: %s" % (release_type,), **result
@@ -68,7 +76,8 @@ def main():
     debian_dir = os.path.join(debian_dir, "debian/contrail/debian")
     target_dir = "contrail-%s" % (version['upstream'],)
 
-    full_version = "{upstream}-{debian}".format(**version)
+    full_version = "{upstream}~{distrib}".format(**version)
+    docker_version += "-%s" % date
 
     packaging = {
         'name': 'contrail',
@@ -76,6 +85,8 @@ def main():
         'full_version': full_version,
         'version': version,
         'target_dir': target_dir,
+        'repo_name': repo_name,
+        'docker_version': docker_version,
     }
 
     module.exit_json(ansible_facts={'packaging': packaging}, **result)

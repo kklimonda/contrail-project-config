@@ -3,34 +3,108 @@
     description: |
       Newly uploaded patchsets enter this pipeline to receive an
       initial +/-1 Verified vote.
+    success-message: Build succeeded (check pipeline).
+    failure-message: Build failed (check pipeline).
     manager: independent
     trigger:
       gerrit:
         - event: patchset-created
           branch:
             - ^master$
+            - ^contrail/ocata$
         - event: comment-added
           branch:
             - ^master$
-          comment: (?i)recheck(( (?:bug|lp)[\s#:]*(\d+))|( zuulv3)|( no bug))(\s+clean)?\s*$
+            - ^contrail/ocata$
+          comment: (?i)recheck(( (?:bug|lp)[\s#:]*(\d+))|( zuulv3)|( no bug))?(\s+clean)?\s*$
     start:
       gerrit:
-        verified: 0
+        Verified: 0
     success:
       gerrit:
-        verified: 1
+        Verified: 1
     failure:
       gerrit:
-        verified: -1
+        Verified: -1
     footer-message: |
 
-      This is a pipeline from the new version of the OpenContrail CI stack. For more information, see:
-      https://github.com/Juniper/contrail-infra/wiki/Zuul-v3-testing-in-OpenContrail-CI
+      For more information about the OpenContrail CI system, see:
+      https://github.com/Juniper/contrail-project-config/wiki/OpenContrail-CI
+
+- pipeline:
+    name: gate
+    description: |
+      Changes that have been approved by core developers are enqueued in order in this pipeline,
+      and if they pass CI tests, will be merged.
+    success-message: Build succeeded (gate pipeline).
+    failure-message: Build failed (gate pipeline).
+    manager: dependent
+    precedence: normal
+    require:
+      gerrit:
+        open: True
+        current-patchset: True
+        approval:
+          - Verified: [1, 2]
+            username: "^zuulv3$"
+          - Approved: 1
+    trigger:
+      gerrit:
+        - event: comment-added
+          branch:
+            - "^master$"
+            - "^contrail/ocata$"
+          approval:
+            - Approved: 1
+        - event: comment-added
+          branch:
+            - "^master$"
+            - "^contrail/ocata$"
+          approval:
+            - Verified: 1
+          username: "^zuulv3$"
+        - event: comment-added
+          branch:
+            - "^master$"
+            - "^contrail/ocata$"
+          approval:
+            - Code-Review: 2
+    start:
+      gerrit:
+        Verified: 0
+    success:
+      gerrit:
+        Verified: 2
+        submit: true
+      stats:
+    failure:
+      gerrit:
+        Verified: -2
+      stats:
+    footer-message: |
+
+      For more information about the OpenContrail CI system, see:
+      https://github.com/Juniper/contrail-project-config/wiki/OpenContrail-CI
+    window-floor: 20
+    window-increase-factor: 2
+
+- pipeline:
+    name: periodic-nightly
+    manager: independent
+    trigger:
+      timer:
+        - time: "0 0 * * *"
+    success:
+      stats:
+    failure:
+      stats:
 
 - pipeline:
     name: experimental
     description: On-demand pipeline for testing jobs.
     manager: independent
+    success-message: Build succeeded (experimental pipeline).
+    failure-message: Build failed (experimental pipeline).
     precedence: normal
     trigger:
       gerrit:
@@ -41,6 +115,26 @@
             - ^contrail/.*$
     success:
       gerrit: {}
+      stats:
     failure:
       gerrit: {}
+      stats:
 
+- pipeline:
+    name: experimental-provision
+    description: On-demand pipeline for testing jobs.
+    manager: independent
+    precedence: normal
+    trigger:
+      gerrit:
+        - event: comment-added
+          comment: (?i)^(Patch Set [0-9]+:)?( [\w\\+-]*)*(\n\n)?\s*check experimental-provision\s*$
+          branch:
+            - ^master$
+            - ^contrail/.*$
+    success:
+      stats:
+    #  gerrit: {}
+    failure:
+      stats:
+    #  gerrit: {}

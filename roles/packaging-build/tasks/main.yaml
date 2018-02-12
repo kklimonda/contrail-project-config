@@ -20,6 +20,51 @@
   register: deps
   failed_when: "'mk-build-deps: Unable to install all build-dep packages' in deps.stdout"
 
+- name: Install android repo package
+  apt:
+    name: repo
+    state: present
+  become: True
+
+- name: (Transition) create a temporary distro/third_party/ directory
+  file:
+    path: "{{ packaging.target_dir }}/distro/third_party/"
+    state: directory
+    recurse: true
+
+- name: (Transition) Create fake Fabric and ecdsa tarballs
+  copy:
+    content: ""
+    dest: "{{ packaging.target_dir }}/distro/third_party/{{ item }}"
+  with_items:
+    - ecdsa-0.13.tar.gz
+    - Fabric-1.14.0.tar.gz
+
+- name: (FIXME) Make sure build directory exists
+  file:
+    path: "{{ packaging.target_dir }}/build"
+    state: directory
+
+- name: (FIXME) Symlink tools/packaging/build/package_configs/ to build/
+  file:
+    src: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/tools/packaging/build/package_configs"
+    dest: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/build/package_configs"
+    state: link
+
+- name: Build auxiliary packages required by contrail-container-builder
+  command: "make {{ item }}-deb"
+  args:
+    chdir: "{{ packaging.target_dir }}/tools/packaging/common/debian/"
+  environment:
+    # XXX(kklimonda): Get that from the job
+    CONTRAIL_SKU: newton
+  with_items:
+    - contrail-setup
+
+- name: Collect all packages from build/debian/
+  shell: |
+    mv {{ packaging.target_dir }}/build/debian/*.deb {{ ansible_env.HOME }}
+
 - name: Create source and binary debian packages
   command: debuild --preserve-env -us -uc
   args:
@@ -29,3 +74,4 @@
     DEBEMAIL: "dev@lists.opencontrail.org"
     DEB_BUILD_OPTIONS: "parallel={{ ansible_processor_vcpus }}"
     LC_ALL: "C"
+

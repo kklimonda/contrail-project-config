@@ -20,13 +20,50 @@
       --define '_sbtop {{ ansible_env.HOME }}/{{ packaging.target_dir }}' \
       --define "_opt production" \
       --define "_kVers {{ kver.stdout }}" \
-      --define "_buildTag {{ zuul.change }}.{{ zuul.patchset }}" \
+      --define "_buildTag {{ packaging.version.distrib }}" \
       --define "_srcVer {{ packaging.version.upstream }}" \
-      --ba tools/packages/rpm/contrail/contrail.spec
+      -ba tools/packages/rpm/contrail/contrail.spec
   args:
     chdir: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}"
   environment:
     SCONSFLAGS: "-j {{ ansible_processor_vcpus }} --opt=production"
+
+- name: Build binary & source packages for contrail-nodemgr
+  shell: |
+    rpmbuild \
+      --define '_topdir {{ ansible_env.HOME }}/{{ packaging.target_dir }}' \
+      --define '_builddir {{ ansible_env.HOME }}/{{ packaging.target_dir }}/controller' \
+      --define "_buildTag {{ packaging.version.distrib }}" \
+      --define "_srcVer {{ packaging.version.upstream }}" \
+      -ba {{ ansible_env.HOME }}/{{ packaging.target_dir }}/tools/packaging/common/rpm/contrail-nodemgr.spec
+  args:
+    chdir: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/controller"
+
+- name: "Build binary package for contrail-setup"
+  shell: |
+    rpmbuild \
+      --define "_topdir {{ ansible_env.HOME }}/{{ packaging.target_dir }}/" \
+      --define "_buildTag {{ packaging.version.distrib }}" \
+      --define "_srcVer {{ packaging.version.upstream }}" \
+      --define "_skuTag mitaka" \
+      --define "_builddir {{ ansible_env.HOME }}/{{ packaging.target_dir }}/controller" \
+      -bb {{ ansible_env.HOME }}/{{ packaging.target_dir }}/tools/packaging/common/rpm/contrail-setup.spec
+  args:
+    chdir: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/controller"
+
+- name: Build additional packages
+  include: build_package.yaml
+  with_items:
+    - { name: 'contrail-openstack-analytics', workdir: 'controller' }
+    - { name: 'contrail-openstack-control',   workdir: 'controller' }
+    - { name: 'contrail-openstack-config-common',   workdir: 'controller' }
+    - { name: 'contrail-openstack-config',   workdir: 'controller' }
+    - { name: 'contrail-openstack-vrouter',   workdir: 'controller' }
+    - { name: 'contrail-openstack-webui',   workdir: 'controller' }
+    - { name: 'contrail-vrouter-init' }
+#    - { name: 'contrail-test' }
+    - { name: 'fabric-utils' }
+    - { name: 'neutron-plugin-contrail' }
 
 - name: Install nodejs 0.10.35
   yum:
@@ -36,17 +73,24 @@
 
 - name: Build binary packages for Contrail WebUI
   shell: |
-    make package REPO=../{{ item }}
+    make package REPO=../{{ item.name }}{{ item.component }}
     rpmbuild \
       --define "_builddir {{ ansible_env.HOME }}/{{ packaging.target_dir }}/BUILD" \
-      --define "_buildTag {{ zuul.change }}.{{ zuul.patchset }}" \
+      --define "_buildTag {{ packaging.version.distrib }}" \
       --define "_srcVer {{ packaging.version.upstream }}" \
-      --bb {{ ansible_env.HOME }}/{{ packaging.target_dir }}/tools/packaging/common/rpm/{{ item }}.spec
+      --bb {{ ansible_env.HOME }}/{{ packaging.target_dir }}/tools/packaging/common/rpm/{{ item.name }}.spec
   args:
     chdir: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/contrail-web-core"
   with_items:
-    - contrail-web-core
-    - contrail-web-controller
+    - { name: "contrail-web-core", component: "" }
+    - { name: "contrail-web-controller", component: ",webController" }
 
-- name: Get a list of packages
-  shell: ls -l {{ansible_env.HOME }}/rpmbuild/RPMS/x86_64/ {{ansible_env.HOME }}/rpmbuild/SRPMS/ || /bin/true
+- name: Collect all packages from workspace
+  synchronize:
+    src: "{{ ansible_env.HOME }}/{{ packaging.target_dir }}/RPMS/"
+    dest: "{{ ansible_env.HOME }}/rpmbuild/RPMS"
+    rsync_opts:
+      - --no-motd
+      - --quiet
+  delegate_to: "{{ inventory_hostname }}"
+

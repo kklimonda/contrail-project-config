@@ -21,12 +21,16 @@ labels:
       - name: juniper-contrail-ci
   - name: ubuntu-trusty-builder
     image: ubuntu-trusty
-    min-ready: 2
+    min-ready: 0
     provides:
       - name: juniper-contrail-ci
-  - name: centos-7.4-builder
-    image: centos-7.4
-    min-ready: 2
+  - name: centos-7-4-builder
+    image: centos-7-4
+    min-ready: 0
+    provides:
+      - name: juniper-contrail-ci
+  - name: centos-7-4-builder-xxlarge
+    min-ready: 0
     provides:
       - name: juniper-contrail-ci
 
@@ -36,6 +40,7 @@ providers:
     cloud: jnpr-contrail-ci
     api-timeout: 60
     boot-timeout: 120
+    clean-floating-ips: true
     rate: 1.0
     ipv6-preferred: false
     image-type: 'qcow2'
@@ -44,14 +49,15 @@ providers:
     diskimages:
       - name: ubuntu-xenial
       - name: ubuntu-trusty
-      - name: centos-7.4
+      - name: centos-7-4
     pools:
       - name: ci-zuulv3
-        max-servers: 6
+        max-servers: 30
         availability-zones:
           - opencontrail-ci-zone
         networks:
           - ci-zuulv3-internal
+          - contrail-dataplane
         labels:
           - name: ubuntu-xenial-small
             flavor-name: m1.small
@@ -64,18 +70,23 @@ providers:
             console-log: True
             key-name: ci-infra-shared-key
           - name: ubuntu-trusty-builder
-            flavor-name: m1.16g_40g_8vcpu
+            flavor-name: m1.16g_80g_8vcpu
             diskimage: ubuntu-trusty
             console-log: True
             key-name: ci-infra-shared-key
-          - name: centos-7.4-builder
+          - name: centos-7-4-builder
             flavor-name: m1.16g_40g_8vcpu
-            diskimage: centos-7.4
+            diskimage: centos-7-4
+            console-log: True
+            key-name: ci-infra-shared-key
+          - name: centos-7-4-builder-xxlarge
+            flavor-name: m1.ci-systest
+            diskimage: centos-7-4
             console-log: True
             key-name: ci-infra-shared-key
 
 diskimages:
-  - name: centos-7.4
+  - name: centos-7-4
     elements:
       - centos-minimal
       - vm
@@ -92,6 +103,7 @@ diskimages:
       DIB_GRUB_TIMEOUT: '0'
       DIB_EPEL_DISABLED: '0'
       DIB_YUM_MINIMAL_CREATE_INTERFACES: '0'
+      DIB_INSTALLTYPE_pip_and_virtualenv: package
   - name: ubuntu-xenial
     elements:
       - ubuntu
@@ -132,4 +144,3 @@ diskimages:
       DIB_DISTRIBUTION_MIRROR: 'http://10.84.5.38:8000/ubuntu'
       DIB_DEBOOTSTRAP_EXTRA_ARGS: '--no-check-gpg'
       DIB_DEBIAN_COMPONENTS: 'main,universe'
-

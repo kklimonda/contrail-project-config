@@ -1,5 +1,6 @@
-- hosts: all
+- hosts: builder
   roles:
     - contrail-common-libs
     - packaging-prepare-contrail-el
     - packaging-build-el
+
