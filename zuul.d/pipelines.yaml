@@ -76,11 +76,9 @@
       gerrit:
         Verified: 2
         submit: true
-      stats:
     failure:
       gerrit:
         Verified: -2
-      stats:
     footer-message: |
 
       For more information about the OpenContrail CI system, see:
@@ -94,10 +92,6 @@
     trigger:
       timer:
         - time: "0 0 * * *"
-    success:
-      stats:
-    failure:
-      stats:
 
 - pipeline:
     name: experimental
@@ -115,10 +109,8 @@
             - ^contrail/.*$
     success:
       gerrit: {}
-      stats:
     failure:
       gerrit: {}
-      stats:
 
 - pipeline:
     name: experimental-provision
@@ -132,9 +124,4 @@
           branch:
             - ^master$
             - ^contrail/.*$
-    success:
-      stats:
-    #  gerrit: {}
-    failure:
-      stats:
-    #  gerrit: {}
+
