@@ -11,8 +11,6 @@
           - Juniper/contrail-api-client
           - Juniper/contrail-nova-extensions
       gerrit:
-        config-projects:
-          - Juniper/contrail-project-config
         untrusted-projects:
           - Juniper/contrail-zuul-jobs
           - Juniper/contrail-analytics
