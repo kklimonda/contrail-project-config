@@ -52,38 +52,37 @@ providers:
       - name: centos-7-4
     pools:
       - name: ci-zuulv3
-        max-servers: 30
+        max-servers: 6
         availability-zones:
-          - opencontrail-ci-zone
+          - nova
         networks:
-          - ci-zuulv3-internal
-          - contrail-dataplane
+          - public
         labels:
           - name: ubuntu-xenial-small
             flavor-name: m1.small
             diskimage: ubuntu-xenial
             console-log: True
-            key-name: ci-infra-shared-key
+            key-name: kklimonda-noise
           - name: ubuntu-xenial-builder
-            flavor-name: m1.16g_40g_8vcpu
+            flavor-name: m1.xlarge
             diskimage: ubuntu-xenial
             console-log: True
-            key-name: ci-infra-shared-key
+            key-name: kklimonda-noise
           - name: ubuntu-trusty-builder
-            flavor-name: m1.16g_80g_8vcpu
+            flavor-name: m1.xlarge
             diskimage: ubuntu-trusty
             console-log: True
-            key-name: ci-infra-shared-key
+            key-name: kklimonda-noise
           - name: centos-7-4-builder
-            flavor-name: m1.16g_40g_8vcpu
+            flavor-name: m1.xlarge
             diskimage: centos-7-4
             console-log: True
-            key-name: ci-infra-shared-key
+            key-name: kklimonda-noise
           - name: centos-7-4-builder-xxlarge
-            flavor-name: m1.ci-systest
+            flavor-name: m1.xlarge
             diskimage: centos-7-4
             console-log: True
-            key-name: ci-infra-shared-key
+            key-name: kklimonda-noise
 
 diskimages:
   - name: centos-7-4
